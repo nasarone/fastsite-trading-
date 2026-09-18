@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Digit Trader Demo</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#07111f;color:#f4f7fb}
+header{padding:14px 16px;background:#0d1b2d;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:5}
+.logo{font-weight:800}.badge{padding:7px 10px;border-radius:20px;background:#123b2b;color:#57e69b;font-size:12px}
+.wrap{padding:12px;max-width:620px;margin:auto}.card{background:#0d1b2d;border:1px solid #1c3047;border-radius:14px;padding:14px;margin-bottom:12px}
+.row{display:flex;gap:8px}.row>*{flex:1}label{display:block;font-size:12px;color:#91a5bc;margin-bottom:6px}
+select,input,button{width:100%;border:0;border-radius:10px;padding:12px;font-size:15px}select,input{background:#14253a;color:#fff}
+button{font-weight:700;cursor:pointer}.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.tabs button{background:#14253a;color:#c9d5e3}.tabs button.active{background:#2a6df4;color:white}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}.digit{background:#14253a;border-radius:9px;text-align:center;padding:8px 2px}.digit b{display:block;font-size:17px}.bar{height:5px;background:#20344c;border-radius:5px;margin-top:6px;overflow:hidden}.fill{height:100%;background:#41d98a}.least .fill{background:#ef5b67}
+.trade{display:grid;grid-template-columns:1fr 1fr;gap:10px}.over{background:#20a56b;color:white}.under{background:#d84b5c;color:white}
+.small{font-size:12px;color:#91a5bc}.switch{display:flex;gap:7px}.switch button{background:#182c43;color:#9fb1c6}.switch .active{background:#f0a92b;color:#101820}
+#log{max-height:160px;overflow:auto}.logline{padding:8px 0;border-bottom:1px solid #1b2b40;font-size:13px}
+footer{text-align:center;color:#71859c;font-size:11px;padding:10px}
+</style>
+</head>
+<body>
+<header><div class="logo">Digit Trader</div><div id="modeBadge" class="badge">DEMO</div></header>
+<main class="wrap">
+<div class="card">
+<label>ACCOUNT</label>
+<div class="switch"><button id="demoBtn" class="active" onclick="setMode('DEMO')">Demo</button><button id="realBtn" onclick="setMode('REAL')">Real</button></div>
+<p class="small" id="balance">Demo balance: $10,000.00</p>
+</div>
+
+<div class="card">
+<label>CONTRACT TYPE</label>
+<div class="tabs">
+<button class="active" onclick="typeTab(this,'digit')">Digits</button>
+<button onclick="typeTab(this,'even')">Even/Odd</button>
+<button onclick="typeTab(this,'match')">Match/Diff</button>
+</div>
+</div>
+
+<div class="card">
+<div class="row">
+<div><label>MARKET</label><select id="market"><option>Volatility 10 Index</option><option>Volatility 25 Index</option><option>Volatility 50 Index</option><option>Volatility 75 Index</option><option>Volatility 100 Index</option></select></div>
+<div><label>STAKE</label><input id="stake" type="number" value="1" min="0.1" step="0.1"></div>
+</div>
+</div>
+
+<div class="card">
+<label>LAST DIGITS — LIVE DEMO SIMULATION</label>
+<div class="stats" id="digits"></div>
+<p class="small">Green = frequently appearing in the sample · Red = least appearing.</p>
+</div>
+
+<div class="card">
+<div class="row">
+<div><label>DIGIT BARRIER</label><select id="barrier"></select></div>
+<div><label>NUMBER OF TRADES</label><input id="count" type="number" value="1" min="1" max="100"></div>
+</div>
+<br>
+<label>CONTRACT</label>
+<select id="contract"><option>Win / Lose</option><option>Accumulators</option></select>
+<br><br>
+<div class="trade">
+<button class="over" onclick="trade('OVER')">OVER</button>
+<button class="under" onclick="trade('UNDER')">UNDER</button>
+</div>
+</div>
+
+<div class="card">
+<label>BULK TRADING</label>
+<div class="row">
+<div><label>TRADES</label><input id="bulkCount" type="number" value="5" min="1" max="100"></div>
+<div><label>STAKE / TRADE</label><input id="bulkStake" type="number" value="1" min="0.1" step="0.1"></div>
+</div>
+<br><select id="bulkContract"><option>Win / Lose</option><option>Accumulators</option></select><br><br>
+<div class="trade"><button class="over" onclick="bulk('OVER')">BULK OVER</button><button class="under" onclick="bulk('UNDER')">BULK UNDER</button></div>
+</div>
+
+<div class="card"><label>TRADE LOG</label><div id="log"><div class="small">No trades yet.</div></div></div>
+<footer>Prototype for testing. Real-money execution is not connected.</footer>
+</main>
+<script>
+let mode='DEMO', balance=10000, nums=[];
+const digitsEl=document.getElementById('digits'), log=document.getElementById('log'), barrier=document.getElementById('barrier');
+for(let i=0;i<10;i++){let o=document.createElement('option');o.value=i;o.textContent=i;barrier.appendChild(o)}
+function setMode(m){mode=m;document.getElementById('modeBadge').textContent=m;demoBtn.classList.toggle('active',m==='DEMO');realBtn.classList.toggle('active',m==='REAL');document.getElementById('balance').textContent=(m==='DEMO'?'Demo':'Real')+' balance: $'+balance.toFixed(2)}
+function typeTab(el,t){document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));el.classList.add('active')}
+function updateDigits(){
+ nums=Array.from({length:30},()=>Math.floor(Math.random()*10));
+ let counts=Array(10).fill(0);nums.forEach(n=>counts[n]++);
+ let max=Math.max(...counts),min=Math.min(...counts);
+ digitsEl.innerHTML=counts.map((c,i)=>`<div class="digit ${c===min?'least':''}"><b>${i}</b><span>${c}%</span><div class="bar"><div class="fill" style="width:${(c/ max)*100}%"></div></div></div>`).join('');
+}
+function oneTrade(side,stake){
+ let b=+barrier.value, last=Math.floor(Math.random()*10), win=side==='OVER'?last>b:last<b;
+ let pnl=win?stake*.95:-stake; balance+=pnl;
+ let line=document.createElement('div');line.className='logline';line.innerHTML=`<b>${mode}</b> · ${side} ${b} · Last digit <b>${last}</b> · ${win?'WIN':'LOSE'} · ${pnl>=0?'+':''}$${pnl.toFixed(2)}`;
+ log.prepend(line); if(log.querySelector('.small')) log.querySelector('.small').remove();
+}
+function trade(side){let stake=+document.getElementById('stake').value;if(mode==='REAL'){alert('Real execution is not connected in this prototype. Switch to Demo for testing.');return}oneTrade(side,stake);setMode(mode)}
+function bulk(side){let n=+document.getElementById('bulkCount').value,stake=+document.getElementById('bulkStake').value;if(mode==='REAL'){alert('Real execution is not connected in this prototype.');return}for(let i=0;i<n;i++)oneTrade(side,stake);setMode(mode)}
+updateDigits();setInterval(updateDigits,1800);
+</script>
+</body>
+</html>
