@@ -79,7 +79,7 @@ footer{text-align:center;color:#71859c;font-size:11px;padding:10px}
 <footer>Prototype for testing. Real-money execution is not connected.</footer>
 </main>
 <script>
-let mode='DEMO', balance=10000, nums=[];
+let mode='REAL', balance=10000, nums=[];
 const digitsEl=document.getElementById('digits'), log=document.getElementById('log'), barrier=document.getElementById('barrier');
 for(let i=0;i<10;i++){let o=document.createElement('option');o.value=i;o.textContent=i;barrier.appendChild(o)}
 function setMode(m){mode=m;document.getElementById('modeBadge').textContent=m;demoBtn.classList.toggle('active',m==='DEMO');realBtn.classList.toggle('active',m==='REAL');document.getElementById('balance').textContent=(m==='DEMO'?'Demo':'Real')+' balance: $'+balance.toFixed(2)}
